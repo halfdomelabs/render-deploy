@@ -1,18 +1,26 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Render Deploy'
+description: 'Deploys a Render app and waits for deployment to finish'
+author: 'Half Dome Labs LLC'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  service-id:
+    description: 'The ID of the Render service to deploy'
     required: true
-    default: '1000'
+  render-token:
+    description: 'The Render API token'
+    required: true
+  wait-for-deploy:
+    description: 'Whether to wait for the deployment to finish'
+    required: false
+    default: 'true'
+  timeout:
+    description: 'The maximum time to wait for the deployment to finish (ms)'
+    required: false
+    default: '1200000'
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  deploy-id:
+    description: 'The ID of the deployment'
 
 runs:
   using: node20

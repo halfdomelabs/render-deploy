@@ -1,26 +1,55 @@
-import * as core from '@actions/core'
-import { wait } from './wait'
+import * as core from '@actions/core';
+import {
+  FAILURE_STATUSES,
+  RenderDeployment,
+  createRenderDeployment,
+  getRenderDeployment,
+  getRenderService,
+} from './render';
 
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
+  const renderServiceId = core.getInput('service-id', {
+    required: true,
+  });
+  const waitForDeploy = core.getInput('wait-for-deploy');
+  const timeout = core.getInput('timeout');
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+  // fetch service info
+  core.info(`Fetching service info for ${renderServiceId}...`);
+  const renderService = await getRenderService(renderServiceId);
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+  if (renderService.suspended === 'suspended') {
+    throw new Error('Render service is suspended');
   }
+
+  // create deployment
+  core.info(`Creating deployment for ${renderService.name}...`);
+  const newDeployment = await createRenderDeployment(renderServiceId);
+
+  if (waitForDeploy === 'true') {
+    // wait for deployment to finish
+    let deployment: RenderDeployment;
+    const timeoutInt = parseInt(timeout, 10);
+
+    core.info(`Waiting for deployment to finish...`);
+    const start = Date.now();
+    do {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      deployment = await getRenderDeployment(renderServiceId, newDeployment.id);
+      if (FAILURE_STATUSES.includes(deployment.status)) {
+        throw new Error(`Render deployment failed: ${deployment.status}`);
+      }
+      if (Date.now() - start > timeoutInt) {
+        throw new Error(`Render deployment timed out after ${timeoutInt}ms`);
+      }
+    } while (deployment.status !== 'live');
+  }
+
+  // Set deployment ID output
+  core.setOutput('deployment-id', newDeployment.id);
 }

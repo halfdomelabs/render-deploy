@@ -31,7 +31,10 @@ async function makeRenderRequest<T>(
       break;
   }
 
-  if (result.message.statusCode !== 200) {
+  if (
+    !result.message.statusCode ||
+    (result.message.statusCode < 200 && 300 <= result.message.statusCode)
+  ) {
     throw new Error(
       `Invalid status code from Render API: ${result.message.statusCode}`,
     );

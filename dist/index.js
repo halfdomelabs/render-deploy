@@ -25747,7 +25747,8 @@ async function makeRenderRequest(endpoint, method, data) {
             result = await client.del(url);
             break;
     }
-    if (result.message.statusCode !== 200) {
+    if (!result.message.statusCode ||
+        (result.message.statusCode < 200 && 300 <= result.message.statusCode)) {
         throw new Error(`Invalid status code from Render API: ${result.message.statusCode}`);
     }
     const body = await result.readBody();

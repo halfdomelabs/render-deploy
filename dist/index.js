@@ -25725,7 +25725,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const http_client_1 = __nccwpck_require__(6255);
 const auth_1 = __nccwpck_require__(5526);
 async function makeRenderRequest(endpoint, method, data) {
-    const renderApiKey = core.getInput('api-key', {
+    const renderApiKey = core.getInput('render-token', {
         required: true,
     });
     const client = new http_client_1.HttpClient('render-deploy-github-action', [

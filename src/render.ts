@@ -7,7 +7,7 @@ async function makeRenderRequest<T>(
   method: 'get' | 'post' | 'patch' | 'delete',
   data?: unknown,
 ): Promise<T> {
-  const renderApiKey = core.getInput('api-key', {
+  const renderApiKey = core.getInput('render-token', {
     required: true,
   });
   const client = new HttpClient('render-deploy-github-action', [

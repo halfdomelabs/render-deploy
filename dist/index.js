@@ -25682,6 +25682,10 @@ async function run() {
                 throw new Error(`Render deployment timed out after ${timeoutInt}ms`);
             }
         } while (deployment.status !== 'live');
+        const duration = Math.round((Date.now() - start) / 1000);
+        const durationMin = Math.floor(duration / 60);
+        const durationSec = duration % 60;
+        core.info(`Deployment successfully completed in ${durationMin} min and ${durationSec} sec!`);
     }
     // Set deployment ID output
     core.setOutput('deployment-id', newDeployment.id);

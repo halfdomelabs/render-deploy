@@ -13,5 +13,7 @@ updates:
     labels:
       - dependabot
       - npm
+    # Disable version updates for npm dependencies
+    open-pull-requests-limit: 0
     schedule:
       interval: daily

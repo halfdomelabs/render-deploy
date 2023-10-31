@@ -25673,7 +25673,7 @@ async function run() {
         core.info(`Waiting for deployment to finish...`);
         const start = Date.now();
         do {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             deployment = await (0, render_1.getRenderDeployment)(renderServiceId, newDeployment.id);
             if (render_1.FAILURE_STATUSES.includes(deployment.status)) {
                 throw new Error(`Render deployment failed: ${deployment.status}`);
@@ -25728,7 +25728,7 @@ exports.getRenderDeployment = exports.createRenderDeployment = exports.FAILURE_S
 const core = __importStar(__nccwpck_require__(2186));
 const http_client_1 = __nccwpck_require__(6255);
 const auth_1 = __nccwpck_require__(5526);
-async function makeRenderRequest(endpoint, method, data) {
+async function makeRenderRequest(endpoint, method, data, options = { retryAttemptsForGet: 2 }) {
     const renderApiKey = core.getInput('render-token', {
         required: true,
     });
@@ -25736,27 +25736,44 @@ async function makeRenderRequest(endpoint, method, data) {
         new auth_1.BearerCredentialHandler(renderApiKey),
     ]);
     const url = `https://api.render.com/v1/${endpoint}`;
-    let result;
-    switch (method) {
-        case 'get':
-            result = await client.get(url);
-            break;
-        case 'post':
-            result = await client.post(url, JSON.stringify(data));
-            break;
-        case 'patch':
-            result = await client.patch(url, JSON.stringify(data));
-            break;
-        case 'delete':
-            result = await client.del(url);
-            break;
+    try {
+        let result;
+        switch (method) {
+            case 'get':
+                result = await client.get(url);
+                break;
+            case 'post':
+                result = await client.post(url, JSON.stringify(data));
+                break;
+            case 'patch':
+                result = await client.patch(url, JSON.stringify(data));
+                break;
+            case 'delete':
+                result = await client.del(url);
+                break;
+        }
+        if (!result.message.statusCode ||
+            (result.message.statusCode < 200 && 300 <= result.message.statusCode)) {
+            throw new Error(`Invalid status code from Render API: ${result.message.statusCode}`);
+        }
+        const body = await result.readBody();
+        return JSON.parse(body);
     }
-    if (!result.message.statusCode ||
-        (result.message.statusCode < 200 && 300 <= result.message.statusCode)) {
-        throw new Error(`Invalid status code from Render API: ${result.message.statusCode}`);
+    catch (err) {
+        // Retry GET requests automatically
+        if (method === 'get' &&
+            options.retryAttemptsForGet &&
+            options.retryAttemptsForGet > 0) {
+            core.info(`Encountered error while making GET request: ${err instanceof Error ? err.message : typeof err}`);
+            core.info(`Retrying GET request to ${url}...`);
+            // wait one second before retrying
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return makeRenderRequest(endpoint, method, data, {
+                retryAttemptsForGet: options.retryAttemptsForGet - 1,
+            });
+        }
+        throw err;
     }
-    const body = await result.readBody();
-    return JSON.parse(body);
 }
 async function getRenderService(serviceId) {
     return makeRenderRequest(`services/${serviceId}`, 'get');

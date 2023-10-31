@@ -6,6 +6,7 @@ async function makeRenderRequest<T>(
   endpoint: string,
   method: 'get' | 'post' | 'patch' | 'delete',
   data?: unknown,
+  options: { retryAttemptsForGet?: number } = { retryAttemptsForGet: 2 },
 ): Promise<T> {
   const renderApiKey = core.getInput('render-token', {
     required: true,
@@ -15,32 +16,56 @@ async function makeRenderRequest<T>(
   ]);
   const url = `https://api.render.com/v1/${endpoint}`;
 
-  let result: HttpClientResponse;
-  switch (method) {
-    case 'get':
-      result = await client.get(url);
-      break;
-    case 'post':
-      result = await client.post(url, JSON.stringify(data));
-      break;
-    case 'patch':
-      result = await client.patch(url, JSON.stringify(data));
-      break;
-    case 'delete':
-      result = await client.del(url);
-      break;
-  }
+  try {
+    let result: HttpClientResponse;
 
-  if (
-    !result.message.statusCode ||
-    (result.message.statusCode < 200 && 300 <= result.message.statusCode)
-  ) {
-    throw new Error(
-      `Invalid status code from Render API: ${result.message.statusCode}`,
-    );
+    switch (method) {
+      case 'get':
+        result = await client.get(url);
+        break;
+      case 'post':
+        result = await client.post(url, JSON.stringify(data));
+        break;
+      case 'patch':
+        result = await client.patch(url, JSON.stringify(data));
+        break;
+      case 'delete':
+        result = await client.del(url);
+        break;
+    }
+
+    if (
+      !result.message.statusCode ||
+      (result.message.statusCode < 200 && 300 <= result.message.statusCode)
+    ) {
+      throw new Error(
+        `Invalid status code from Render API: ${result.message.statusCode}`,
+      );
+    }
+    const body = await result.readBody();
+    return JSON.parse(body) as T;
+  } catch (err) {
+    // Retry GET requests automatically
+    if (
+      method === 'get' &&
+      options.retryAttemptsForGet &&
+      options.retryAttemptsForGet > 0
+    ) {
+      core.info(
+        `Encountered error while making GET request: ${
+          err instanceof Error ? err.message : typeof err
+        }`,
+      );
+      core.info(`Retrying GET request to ${url}...`);
+      // wait one second before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return makeRenderRequest<T>(endpoint, method, data, {
+        retryAttemptsForGet: options.retryAttemptsForGet - 1,
+      });
+    }
+
+    throw err;
   }
-  const body = await result.readBody();
-  return JSON.parse(body) as T;
 }
 
 export interface RenderService {

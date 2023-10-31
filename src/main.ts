@@ -38,7 +38,7 @@ export async function run(): Promise<void> {
     core.info(`Waiting for deployment to finish...`);
     const start = Date.now();
     do {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       deployment = await getRenderDeployment(renderServiceId, newDeployment.id);
       if (FAILURE_STATUSES.includes(deployment.status)) {

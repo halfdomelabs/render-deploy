@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Lint and Typecheck
 
 on:
   pull_request:
@@ -8,8 +8,8 @@ on:
       - 'releases/*'
 
 jobs:
-  test-typescript:
-    name: TypeScript Tests
+  lint-and-typecheck:
+    name: Lint and Typecheck
     runs-on: ubuntu-latest
 
     steps:
@@ -25,3 +25,7 @@ jobs:
       - name: Lint
         id: pnpm-lint
         run: pnpm lint
+
+      - name: Typescript
+        id: pnpm-tsc
+        run: pnpm tsc --noEmit

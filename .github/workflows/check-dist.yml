@@ -29,23 +29,12 @@ jobs:
       statuses: write
 
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: npm
-
-      - name: Install Dependencies
-        id: install
-        run: npm ci
+      - name: Setup Repo and PNPM
+        uses: ./.github/actions/setup-pnpm
 
       - name: Build dist/ Directory
         id: build
-        run: npm run bundle
+        run: pnpm bundle
 
       - name: Compare Expected and Actual Directories
         id: diff

@@ -13,25 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        id: setup-node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: npm
-
-      - name: Install Dependencies
-        id: npm-ci
-        run: npm ci
+      - name: Setup Repo and PNPM
+        uses: ./.github/actions/setup-pnpm
 
       - name: Check Format
-        id: npm-format-check
-        run: npm run format:check
+        id: pnpm-format-check
+        run: pnpm format:check
 
       - name: Lint
-        id: npm-lint
-        run: npm run lint
+        id: pnpm-lint
+        run: pnpm lint

@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Setup Repo and PNPM
+        uses: ./.github/actions/setup-pnpm
+
+      - name: Create Release Pull Request or Create GitHub Release
+        id: changesets
+        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # 1.4.5
+        with:
+          title: 'chore: Version Packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

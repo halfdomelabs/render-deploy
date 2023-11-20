@@ -6,8 +6,6 @@ module.exports = {
   },
   extends: [
     'eslint:recommended',
-    'plugin:jest/recommended',
-    'plugin:jest/style',
   ],
   overrides: [
     {
@@ -93,6 +91,12 @@ module.exports = {
           },
         ],
         '@typescript-eslint/require-await': 'off',
+      },
+    },
+    {
+      files: ['scripts/*'],
+      rules: {
+        'no-console': 'off',
       },
     },
   ],

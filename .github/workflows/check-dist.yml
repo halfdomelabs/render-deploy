@@ -32,7 +32,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
       - name: Setup PNPM
-        uses: ./.github/actions/setup-pnpm.yml
+        uses: ./.github/actions/setup-pnpm
 
       - name: Build dist/ Directory
         id: build

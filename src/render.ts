@@ -97,6 +97,8 @@ export type RenderDeploymentStatus =
   | 'deactivated'
   | 'build_failed'
   | 'update_failed'
+  | 'pre_deploy_in_progress'
+  | 'pre_deploy_failed'
   | 'canceled';
 
 export const FAILURE_STATUSES = [
@@ -104,6 +106,7 @@ export const FAILURE_STATUSES = [
   'build_failed',
   'update_failed',
   'canceled',
+  'pre_deploy_failed',
 ] as RenderDeploymentStatus[];
 
 export interface RenderDeployment {

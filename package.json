@@ -1,7 +1,7 @@
 {
   "name": "render-deploy",
   "description": "GitHub Action for deploying a Render app",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Half Dome Labs LLC",
   "private": true,
   "homepage": "https://github.com/actions/typescript-action",

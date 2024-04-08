@@ -1,5 +1,12 @@
 # render-deploy
 
+## 0.1.2
+
+### Patch Changes
+
+- e9eb383: Upgrade setup-pnpm and changesets action
+- 053f920: Upgrade undici to address security issue
+
 ## 0.1.1
 
 ### Patch Changes

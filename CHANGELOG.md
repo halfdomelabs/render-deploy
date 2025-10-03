@@ -1,5 +1,11 @@
 # render-deploy
 
+## 0.2.1
+
+### Patch Changes
+
+- f66fef0: Fix casing of inputs for image_url -> image-url and timeout_minutes to timeout-minutes
+
 ## 0.2.0
 
 ### Minor Changes

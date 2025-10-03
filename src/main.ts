@@ -9,7 +9,7 @@ import {
   getRenderService,
 } from './render.js';
 
-export interface RunInputs {
+export interface DeployServiceInput {
   renderToken: string;
   serviceId: string;
   waitForDeploy: boolean;
@@ -18,7 +18,7 @@ export interface RunInputs {
   commitId?: string;
 }
 
-export interface RunOutput {
+export interface DeployServiceOutput {
   deploymentId: string;
 }
 
@@ -30,7 +30,9 @@ export interface RunOutput {
  * @throws An error if the service is suspended.
  * @throws An error if the deployment times out.
  */
-export async function run(inputs: RunInputs): Promise<RunOutput> {
+export async function deployService(
+  inputs: DeployServiceInput,
+): Promise<DeployServiceOutput> {
   const {
     renderToken,
     serviceId,

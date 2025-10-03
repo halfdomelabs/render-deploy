@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
 
-import type { RunInputs } from './main.js';
+import type { DeployServiceInput } from './main.js';
 
-import { run } from './main.js';
+import { deployService } from './main.js';
 
 // Extract inputs from GitHub Actions context
 function getTimeoutMinutes(): number {
@@ -16,7 +16,7 @@ function getTimeoutMinutes(): number {
   return parsed;
 }
 
-const inputs: RunInputs = {
+const inputs: DeployServiceInput = {
   renderToken: core.getInput('render-token', { required: true }),
   serviceId: core.getInput('service-id', { required: true }),
   waitForDeploy: core.getInput('wait-for-deploy') === 'true',
@@ -26,7 +26,7 @@ const inputs: RunInputs = {
 };
 
 // Run the action
-await run(inputs)
+await deployService(inputs)
   .then((output) => {
     core.setOutput('deployment-id', output.deploymentId);
   })

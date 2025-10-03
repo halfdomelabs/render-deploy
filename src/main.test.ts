@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { RunInputs } from './main.js';
+import type { DeployServiceInput } from './main.js';
 import type { RenderDeployment, RenderService } from './render.js';
 
-import { run } from './main.js';
+import { deployService } from './main.js';
 import * as render from './render.js';
 
 // Mock timers
@@ -28,7 +28,7 @@ vi.mock('@actions/core', () => ({
   setFailed: vi.fn(),
 }));
 
-describe('run', () => {
+describe('deployService', () => {
   const mockService: RenderService = {
     id: 'srv-123',
     autoDeploy: 'yes',
@@ -51,7 +51,7 @@ describe('run', () => {
     createdAt: '2025-01-01T00:00:00Z',
   };
 
-  const defaultInputs: RunInputs = {
+  const defaultInputs: DeployServiceInput = {
     renderToken: 'test-token',
     serviceId: 'srv-123',
     waitForDeploy: false,
@@ -69,7 +69,7 @@ describe('run', () => {
         mockDeployment,
       );
 
-      const result = await run(defaultInputs);
+      const result = await deployService(defaultInputs);
 
       expect(render.getRenderService).toHaveBeenCalledWith(
         'srv-123',
@@ -93,12 +93,12 @@ describe('run', () => {
         mockDeployment,
       );
 
-      const inputs: RunInputs = {
+      const inputs: DeployServiceInput = {
         ...defaultInputs,
         imageTag: 'v1.2.3',
       };
 
-      await run(inputs);
+      await deployService(inputs);
 
       expect(render.createRenderDeployment).toHaveBeenCalledWith(
         'srv-123',
@@ -116,12 +116,12 @@ describe('run', () => {
         mockDeployment,
       );
 
-      const inputs: RunInputs = {
+      const inputs: DeployServiceInput = {
         ...defaultInputs,
         commitId: 'abc123',
       };
 
-      await run(inputs);
+      await deployService(inputs);
 
       expect(render.createRenderDeployment).toHaveBeenCalledWith(
         'srv-123',
@@ -143,7 +143,7 @@ describe('run', () => {
 
       vi.mocked(render.getRenderService).mockResolvedValue(suspendedService);
 
-      await expect(run(defaultInputs)).rejects.toThrow(
+      await expect(deployService(defaultInputs)).rejects.toThrow(
         'Render service is suspended',
       );
       expect(render.createRenderDeployment).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe('run', () => {
 
   describe('wait for deployment', () => {
     it('should wait for deployment to become live', async () => {
-      const inputs: RunInputs = {
+      const inputs: DeployServiceInput = {
         ...defaultInputs,
         waitForDeploy: true,
         timeoutMinutes: 5,
@@ -178,7 +178,7 @@ describe('run', () => {
           status: 'live',
         });
 
-      const runPromise = run(inputs);
+      const runPromise = deployService(inputs);
 
       // Fast-forward through the setTimeout calls
       await vi.runAllTimersAsync();
@@ -195,7 +195,7 @@ describe('run', () => {
     });
 
     it('should throw error on failed deployment status', async () => {
-      const inputs: RunInputs = {
+      const inputs: DeployServiceInput = {
         ...defaultInputs,
         waitForDeploy: true,
       };
@@ -210,7 +210,7 @@ describe('run', () => {
         status: 'build_failed',
       });
 
-      const runPromise = run(inputs).catch((e: unknown) => e);
+      const runPromise = deployService(inputs).catch((e: unknown) => e);
       await vi.runAllTimersAsync();
 
       const result = await runPromise;
@@ -221,7 +221,7 @@ describe('run', () => {
     });
 
     it('should timeout if deployment takes too long', async () => {
-      const inputs: RunInputs = {
+      const inputs: DeployServiceInput = {
         ...defaultInputs,
         waitForDeploy: true,
         timeoutMinutes: 1, // 1 minute timeout
@@ -238,7 +238,7 @@ describe('run', () => {
         status: 'build_in_progress',
       });
 
-      const runPromise = run(inputs).catch((e: unknown) => e);
+      const runPromise = deployService(inputs).catch((e: unknown) => e);
       await vi.runAllTimersAsync();
 
       const result = await runPromise;

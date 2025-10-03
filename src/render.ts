@@ -1,12 +1,14 @@
+import type { HttpClientResponse } from '@actions/http-client';
+
 import * as core from '@actions/core';
-import { HttpClient, HttpClientResponse } from '@actions/http-client';
-import { BearerCredentialHandler } from '@actions/http-client/lib/auth';
+import { HttpClient } from '@actions/http-client';
+import { BearerCredentialHandler } from '@actions/http-client/lib/auth.js';
 
 async function makeRenderRequest<T>(
   endpoint: string,
   method: 'get' | 'post' | 'patch' | 'delete',
   data?: unknown,
-  options: { retryAttemptsForGet?: number } = { retryAttemptsForGet: 2 },
+  { retryAttemptsForGet = 2 }: { retryAttemptsForGet?: number } = {},
 ): Promise<T> {
   const renderApiKey = core.getInput('render-token', {
     required: true,
@@ -20,18 +22,22 @@ async function makeRenderRequest<T>(
     let result: HttpClientResponse;
 
     switch (method) {
-      case 'get':
+      case 'get': {
         result = await client.get(url);
         break;
-      case 'post':
+      }
+      case 'post': {
         result = await client.post(url, JSON.stringify(data));
         break;
-      case 'patch':
+      }
+      case 'patch': {
         result = await client.patch(url, JSON.stringify(data));
         break;
-      case 'delete':
+      }
+      case 'delete': {
         result = await client.del(url);
         break;
+      }
     }
 
     if (
@@ -46,11 +52,7 @@ async function makeRenderRequest<T>(
     return JSON.parse(body) as T;
   } catch (err) {
     // Retry GET requests automatically
-    if (
-      method === 'get' &&
-      options.retryAttemptsForGet &&
-      options.retryAttemptsForGet > 0
-    ) {
+    if (method === 'get' && retryAttemptsForGet && retryAttemptsForGet > 0) {
       core.info(
         `Encountered error while making GET request: ${
           err instanceof Error ? err.message : typeof err
@@ -60,7 +62,7 @@ async function makeRenderRequest<T>(
       // wait one second before retrying
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return makeRenderRequest<T>(endpoint, method, data, {
-        retryAttemptsForGet: options.retryAttemptsForGet - 1,
+        retryAttemptsForGet: retryAttemptsForGet - 1,
       });
     }
 

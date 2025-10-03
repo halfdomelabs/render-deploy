@@ -1,15 +1,17 @@
 import * as core from '@actions/core';
+
+import type { RenderDeployment } from './render.js';
+
 import {
-  FAILURE_STATUSES,
-  RenderDeployment,
   createRenderDeployment,
+  FAILURE_STATUSES,
   getRenderDeployment,
   getRenderService,
-} from './render';
+} from './render.js';
 
 /**
  * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
+ * @returns Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
   const renderServiceId = core.getInput('service-id', {
@@ -33,7 +35,7 @@ export async function run(): Promise<void> {
   if (waitForDeploy === 'true') {
     // wait for deployment to finish
     let deployment: RenderDeployment;
-    const timeoutInt = parseInt(timeout, 10);
+    const timeoutInt = Number.parseInt(timeout, 10);
 
     core.info(`Waiting for deployment to finish...`);
     const start = Date.now();

@@ -17,13 +17,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup PNPM
         uses: ./.github/actions/setup-pnpm
 
       - name: Create Release Pull Request or Create GitHub Release
         id: changesets
-        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # 1.4.7
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           title: 'chore: Version Packages'
           publish: true # no-op to publish

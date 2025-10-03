@@ -14,18 +14,18 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup PNPM
         uses: ./.github/actions/setup-pnpm
 
       - name: Check Format
-        id: pnpm-format-check
-        run: pnpm format:check
+        id: prettier
+        run: pnpm prettier:check
 
       - name: Lint
-        id: pnpm-lint
+        id: lint
         run: pnpm lint
 
       - name: Typescript
-        id: pnpm-tsc
-        run: pnpm tsc --noEmit
+        id: typecheck
+        run: pnpm typecheck

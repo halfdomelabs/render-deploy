@@ -17,8 +17,8 @@ inputs:
     description: 'The maximum time to wait for the deployment to finish (minutes)'
     required: false
     default: '20'
-  image_tag:
-    description: 'The image tag to deploy (for image-based services)'
+  image_url:
+    description: 'The image URL to deploy (for image-based services)'
     required: false
 
 outputs:

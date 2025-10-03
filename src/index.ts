@@ -21,7 +21,7 @@ const inputs: DeployServiceInput = {
   serviceId: core.getInput('service-id', { required: true }),
   waitForDeploy: core.getInput('wait-for-deploy') === 'true',
   timeoutMinutes: getTimeoutMinutes(),
-  imageTag: core.getInput('image_tag') || undefined,
+  imageUrl: core.getInput('image_url') || undefined,
   commitId: core.getInput('commit_id') || undefined,
 };
 

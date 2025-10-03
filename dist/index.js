@@ -25555,31 +25555,13 @@ module.exports = {
 
 /***/ }),
 
-/***/ 6866:
-/***/ ((module, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
-
-__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6966);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _main_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(8255);
-
-
-await (0,_main_js__WEBPACK_IMPORTED_MODULE_1__/* .run */ .e)().catch((error) => {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error));
-});
-
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } }, 1);
-
-/***/ }),
-
-/***/ 8255:
+/***/ 4311:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  e: () => (/* binding */ run)
+  z: () => (/* binding */ deployService)
 });
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/core.js
@@ -25592,10 +25574,7 @@ var auth = __nccwpck_require__(9418);
 
 
 
-async function makeRenderRequest(endpoint, method, data, { retryAttemptsForGet = 2 } = {}) {
-    const renderApiKey = core.getInput('render-token', {
-        required: true,
-    });
+async function makeRenderRequest(endpoint, method, renderApiKey, data, { retryAttemptsForGet = 2 } = {}) {
     const client = new lib.HttpClient('render-deploy-github-action', [
         new auth.BearerCredentialHandler(renderApiKey),
     ]);
@@ -25635,15 +25614,15 @@ async function makeRenderRequest(endpoint, method, data, { retryAttemptsForGet =
             core.info(`Retrying GET request to ${url}...`);
             // wait one second before retrying
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            return makeRenderRequest(endpoint, method, data, {
+            return makeRenderRequest(endpoint, method, renderApiKey, data, {
                 retryAttemptsForGet: retryAttemptsForGet - 1,
             });
         }
         throw err;
     }
 }
-async function getRenderService(serviceId) {
-    return makeRenderRequest(`services/${serviceId}`, 'get');
+async function getRenderService(serviceId, renderApiKey) {
+    return makeRenderRequest(`services/${serviceId}`, 'get', renderApiKey);
 }
 const FAILURE_STATUSES = [
     'deactivated',
@@ -25652,52 +25631,47 @@ const FAILURE_STATUSES = [
     'canceled',
     'pre_deploy_failed',
 ];
-async function createRenderDeployment(serviceId, options) {
-    return makeRenderRequest(`services/${serviceId}/deploys`, 'post', options);
+async function createRenderDeployment(serviceId, renderApiKey, options) {
+    return makeRenderRequest(`services/${serviceId}/deploys`, 'post', renderApiKey, options);
 }
-async function getRenderDeployment(serviceId, deploymentId) {
-    return makeRenderRequest(`services/${serviceId}/deploys/${deploymentId}`, 'get');
+async function getRenderDeployment(serviceId, deploymentId, renderApiKey) {
+    return makeRenderRequest(`services/${serviceId}/deploys/${deploymentId}`, 'get', renderApiKey);
 }
 
-;// CONCATENATED MODULE: ./src/main.ts
+;// CONCATENATED MODULE: ./src/deploy-service.ts
 
 
 /**
  * The main function for the action.
- * @returns Resolves when the action is complete.
+ * @param inputs - The inputs for the action.
+ * @returns The deployment ID.
+ * @throws An error if the deployment fails.
+ * @throws An error if the service is suspended.
+ * @throws An error if the deployment times out.
  */
-async function run() {
-    const renderServiceId = core.getInput('service-id', {
-        required: true,
-    });
-    const waitForDeploy = core.getInput('wait-for-deploy');
-    const timeoutMinutes = core.getInput('timeout_minutes');
-    const imageTag = core.getInput('image_tag');
-    const commitId = core.getInput('commit_id');
+async function deployService(inputs) {
+    const { renderToken, serviceId, waitForDeploy, timeoutMinutes, imageUrl, commitId, } = inputs;
     // fetch service info
-    core.info(`Fetching service info for ${renderServiceId}...`);
-    const renderService = await getRenderService(renderServiceId);
+    core.info(`Fetching service info for ${serviceId}...`);
+    const renderService = await getRenderService(serviceId, renderToken);
     if (renderService.suspended === 'suspended') {
         throw new Error('Render service is suspended');
     }
     // create deployment
     core.info(`Creating deployment for ${renderService.name}...`);
-    const newDeployment = await createRenderDeployment(renderServiceId, {
-        imageUrl: imageTag || undefined,
-        commitId: commitId || undefined,
+    const newDeployment = await createRenderDeployment(serviceId, renderToken, {
+        imageUrl,
+        commitId,
     });
-    if (waitForDeploy === 'true') {
+    if (waitForDeploy) {
         // wait for deployment to finish
         let deployment;
-        const timeoutMs = Number.parseInt(timeoutMinutes, 10) * 60 * 1000;
-        if (Number.isNaN(timeoutMs) || timeoutMs <= 0) {
-            throw new Error(`Invalid timeout_minutes value: ${timeoutMinutes}. Must be a positive number.`);
-        }
+        const timeoutMs = timeoutMinutes * 60 * 1000;
         core.info(`Waiting for deployment to finish...`);
         const start = Date.now();
         do {
             await new Promise((resolve) => setTimeout(resolve, 2000));
-            deployment = await getRenderDeployment(renderServiceId, newDeployment.id);
+            deployment = await getRenderDeployment(serviceId, newDeployment.id, renderToken);
             if (FAILURE_STATUSES.includes(deployment.status)) {
                 throw new Error(`Render deployment failed: ${deployment.status}`);
             }
@@ -25710,10 +25684,49 @@ async function run() {
         const durationSec = duration % 60;
         core.info(`Deployment successfully completed in ${durationMin} min and ${durationSec} sec!`);
     }
-    // Set deployment ID output
-    core.setOutput('deployment-id', newDeployment.id);
+    return { deploymentId: newDeployment.id };
 }
 
+
+/***/ }),
+
+/***/ 6866:
+/***/ ((module, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6966);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _deploy_service_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(4311);
+
+
+// Extract inputs from GitHub Actions context
+function getTimeoutMinutes() {
+    const value = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('timeout_minutes');
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed) || parsed <= 0) {
+        throw new Error(`Invalid timeout_minutes value: ${value}. Must be a positive number.`);
+    }
+    return parsed;
+}
+const inputs = {
+    renderToken: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('render-token', { required: true }),
+    serviceId: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('service-id', { required: true }),
+    waitForDeploy: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('wait-for-deploy') === 'true',
+    timeoutMinutes: getTimeoutMinutes(),
+    imageUrl: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('image_url') || undefined,
+    commitId: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('commit_id') || undefined,
+};
+// Run the action
+await (0,_deploy_service_js__WEBPACK_IMPORTED_MODULE_1__/* .deployService */ .z)(inputs)
+    .then((output) => {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('deployment-id', output.deploymentId);
+})
+    .catch((error) => {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error));
+});
+
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
 
 /***/ }),
 

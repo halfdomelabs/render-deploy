@@ -14,7 +14,7 @@ export interface DeployServiceInput {
   serviceId: string;
   waitForDeploy: boolean;
   timeoutMinutes: number;
-  imageTag?: string;
+  imageUrl?: string;
   commitId?: string;
 }
 
@@ -38,7 +38,7 @@ export async function deployService(
     serviceId,
     waitForDeploy,
     timeoutMinutes,
-    imageTag,
+    imageUrl,
     commitId,
   } = inputs;
 
@@ -53,7 +53,7 @@ export async function deployService(
   // create deployment
   core.info(`Creating deployment for ${renderService.name}...`);
   const newDeployment = await createRenderDeployment(serviceId, renderToken, {
-    imageUrl: imageTag,
+    imageUrl,
     commitId,
   });
 

@@ -95,7 +95,7 @@ describe('deployService', () => {
 
       const inputs: DeployServiceInput = {
         ...defaultInputs,
-        imageTag: 'v1.2.3',
+        imageUrl: 'v1.2.3',
       };
 
       await deployService(inputs);

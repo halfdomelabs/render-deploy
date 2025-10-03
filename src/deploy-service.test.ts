@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DeployServiceInput } from './main.js';
+import type { DeployServiceInput } from './deploy-service.js';
 import type { RenderDeployment, RenderService } from './render.js';
 
-import { deployService } from './main.js';
+import { deployService } from './deploy-service.js';
 import * as render from './render.js';
 
 // Mock timers

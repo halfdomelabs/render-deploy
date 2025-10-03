@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
 
-import type { DeployServiceInput } from './main.js';
+import type { DeployServiceInput } from './deploy-service.js';
 
-import { deployService } from './main.js';
+import { deployService } from './deploy-service.js';
 
 // Extract inputs from GitHub Actions context
 function getTimeoutMinutes(): number {

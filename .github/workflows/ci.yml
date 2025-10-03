@@ -29,3 +29,7 @@ jobs:
       - name: Typescript
         id: typecheck
         run: pnpm typecheck
+
+      - name: Test
+        id: test
+        run: pnpm test

@@ -31,6 +31,8 @@
     "package:watch": "pnpm package -- --watch",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier -w .",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -45,7 +47,9 @@
     "@vercel/ncc": "0.38.4",
     "eslint": "9.36.0",
     "prettier": "3.6.2",
-    "typescript": "5.8.3"
+    "tsx": "^4.20.6",
+    "typescript": "5.8.3",
+    "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@10.17.1",
   "engines": {

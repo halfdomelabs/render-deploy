@@ -42,7 +42,8 @@ async function makeRenderRequest<T>(
 
     if (
       !result.message.statusCode ||
-      (result.message.statusCode < 200 && 300 <= result.message.statusCode)
+      result.message.statusCode < 200 ||
+      result.message.statusCode >= 300
     ) {
       throw new Error(
         `Invalid status code from Render API: ${result.message.statusCode}`,
@@ -125,11 +126,12 @@ export interface RenderDeployment {
 
 export async function createRenderDeployment(
   serviceId: string,
+  options: { imageUrl?: string; commitId?: string },
 ): Promise<RenderDeployment> {
   return makeRenderRequest<RenderDeployment>(
     `services/${serviceId}/deploys`,
     'post',
-    {},
+    options,
   );
 }
 

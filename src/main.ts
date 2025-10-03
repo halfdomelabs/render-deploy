@@ -18,7 +18,9 @@ export async function run(): Promise<void> {
     required: true,
   });
   const waitForDeploy = core.getInput('wait-for-deploy');
-  const timeout = core.getInput('timeout');
+  const timeoutMinutes = core.getInput('timeout_minutes');
+  const imageTag = core.getInput('image_tag');
+  const commitId = core.getInput('commit_id');
 
   // fetch service info
   core.info(`Fetching service info for ${renderServiceId}...`);
@@ -30,12 +32,21 @@ export async function run(): Promise<void> {
 
   // create deployment
   core.info(`Creating deployment for ${renderService.name}...`);
-  const newDeployment = await createRenderDeployment(renderServiceId);
+  const newDeployment = await createRenderDeployment(renderServiceId, {
+    imageUrl: imageTag || undefined,
+    commitId: commitId || undefined,
+  });
 
   if (waitForDeploy === 'true') {
     // wait for deployment to finish
     let deployment: RenderDeployment;
-    const timeoutInt = Number.parseInt(timeout, 10);
+    const timeoutMs = Number.parseInt(timeoutMinutes, 10) * 60 * 1000;
+
+    if (Number.isNaN(timeoutMs) || timeoutMs <= 0) {
+      throw new Error(
+        `Invalid timeout_minutes value: ${timeoutMinutes}. Must be a positive number.`,
+      );
+    }
 
     core.info(`Waiting for deployment to finish...`);
     const start = Date.now();
@@ -46,8 +57,10 @@ export async function run(): Promise<void> {
       if (FAILURE_STATUSES.includes(deployment.status)) {
         throw new Error(`Render deployment failed: ${deployment.status}`);
       }
-      if (Date.now() - start > timeoutInt) {
-        throw new Error(`Render deployment timed out after ${timeoutInt}ms`);
+      if (Date.now() - start > timeoutMs) {
+        throw new Error(
+          `Render deployment timed out after ${timeoutMinutes} minutes`,
+        );
       }
     } while (deployment.status !== 'live');
 

@@ -13,10 +13,13 @@ inputs:
     description: 'Whether to wait for the deployment to finish'
     required: false
     default: 'true'
-  timeout:
-    description: 'The maximum time to wait for the deployment to finish (ms)'
+  timeout_minutes:
+    description: 'The maximum time to wait for the deployment to finish (minutes)'
     required: false
-    default: '1200000'
+    default: '20'
+  image_tag:
+    description: 'The image tag to deploy (for image-based services)'
+    required: false
 
 outputs:
   deploy-id:

@@ -25621,7 +25621,8 @@ async function makeRenderRequest(endpoint, method, data, { retryAttemptsForGet =
             }
         }
         if (!result.message.statusCode ||
-            (result.message.statusCode < 200 && 300 <= result.message.statusCode)) {
+            result.message.statusCode < 200 ||
+            result.message.statusCode >= 300) {
             throw new Error(`Invalid status code from Render API: ${result.message.statusCode}`);
         }
         const body = await result.readBody();
@@ -25651,8 +25652,8 @@ const FAILURE_STATUSES = [
     'canceled',
     'pre_deploy_failed',
 ];
-async function createRenderDeployment(serviceId) {
-    return makeRenderRequest(`services/${serviceId}/deploys`, 'post', {});
+async function createRenderDeployment(serviceId, options) {
+    return makeRenderRequest(`services/${serviceId}/deploys`, 'post', options);
 }
 async function getRenderDeployment(serviceId, deploymentId) {
     return makeRenderRequest(`services/${serviceId}/deploys/${deploymentId}`, 'get');
@@ -25670,7 +25671,9 @@ async function run() {
         required: true,
     });
     const waitForDeploy = core.getInput('wait-for-deploy');
-    const timeout = core.getInput('timeout');
+    const timeoutMinutes = core.getInput('timeout_minutes');
+    const imageTag = core.getInput('image_tag');
+    const commitId = core.getInput('commit_id');
     // fetch service info
     core.info(`Fetching service info for ${renderServiceId}...`);
     const renderService = await getRenderService(renderServiceId);
@@ -25679,11 +25682,17 @@ async function run() {
     }
     // create deployment
     core.info(`Creating deployment for ${renderService.name}...`);
-    const newDeployment = await createRenderDeployment(renderServiceId);
+    const newDeployment = await createRenderDeployment(renderServiceId, {
+        imageUrl: imageTag || undefined,
+        commitId: commitId || undefined,
+    });
     if (waitForDeploy === 'true') {
         // wait for deployment to finish
         let deployment;
-        const timeoutInt = Number.parseInt(timeout, 10);
+        const timeoutMs = Number.parseInt(timeoutMinutes, 10) * 60 * 1000;
+        if (Number.isNaN(timeoutMs) || timeoutMs <= 0) {
+            throw new Error(`Invalid timeout_minutes value: ${timeoutMinutes}. Must be a positive number.`);
+        }
         core.info(`Waiting for deployment to finish...`);
         const start = Date.now();
         do {
@@ -25692,8 +25701,8 @@ async function run() {
             if (FAILURE_STATUSES.includes(deployment.status)) {
                 throw new Error(`Render deployment failed: ${deployment.status}`);
             }
-            if (Date.now() - start > timeoutInt) {
-                throw new Error(`Render deployment timed out after ${timeoutInt}ms`);
+            if (Date.now() - start > timeoutMs) {
+                throw new Error(`Render deployment timed out after ${timeoutMinutes} minutes`);
             }
         } while (deployment.status !== 'live');
         const duration = Math.round((Date.now() - start) / 1000);

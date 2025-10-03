@@ -25701,10 +25701,10 @@ __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 
 // Extract inputs from GitHub Actions context
 function getTimeoutMinutes() {
-    const value = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('timeout_minutes');
+    const value = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('timeout-minutes');
     const parsed = Number.parseInt(value, 10);
     if (Number.isNaN(parsed) || parsed <= 0) {
-        throw new Error(`Invalid timeout_minutes value: ${value}. Must be a positive number.`);
+        throw new Error(`Invalid timeout-minutes value: ${value}. Must be a positive number.`);
     }
     return parsed;
 }
@@ -25713,8 +25713,8 @@ const inputs = {
     serviceId: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('service-id', { required: true }),
     waitForDeploy: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('wait-for-deploy') === 'true',
     timeoutMinutes: getTimeoutMinutes(),
-    imageUrl: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('image_url') || undefined,
-    commitId: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('commit_id') || undefined,
+    imageUrl: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('image-url') || undefined,
+    commitId: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('commit-id') || undefined,
 };
 // Run the action
 await (0,_deploy_service_js__WEBPACK_IMPORTED_MODULE_1__/* .deployService */ .z)(inputs)

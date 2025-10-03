@@ -45,7 +45,7 @@ jobs:
   with:
     service-id: ${{ secrets.RENDER_SERVICE_ID }}
     render-token: ${{ secrets.RENDER_API_TOKEN }}
-    image_url: ghcr.io/your-org/your-app:${{ github.sha }}
+    image-url: ghcr.io/your-org/your-app:${{ github.sha }}
 ```
 
 ### Deploy Without Waiting
@@ -67,7 +67,7 @@ jobs:
   with:
     service-id: ${{ secrets.RENDER_SERVICE_ID }}
     render-token: ${{ secrets.RENDER_API_TOKEN }}
-    timeout_minutes: '30'
+    timeout-minutes: '30'
 ```
 
 ## Inputs
@@ -77,9 +77,9 @@ jobs:
 | `service-id`      | The ID of the Render service to deploy                      | Yes      | -       |
 | `render-token`    | Your Render API token                                       | Yes      | -       |
 | `wait-for-deploy` | Whether to wait for the deployment to finish                | No       | `true`  |
-| `timeout_minutes` | Maximum time to wait for deployment completion (in minutes) | No       | `20`    |
-| `image_url`       | Docker image URL to deploy (for image-based services)       | No       | -       |
-| `commit_id`       | Specific commit ID to deploy                                | No       | -       |
+| `timeout-minutes` | Maximum time to wait for deployment completion (in minutes) | No       | `20`    |
+| `image-url`       | Docker image URL to deploy (for image-based services)       | No       | -       |
+| `commit-id`       | Specific commit ID to deploy                                | No       | -       |
 
 ## Outputs
 

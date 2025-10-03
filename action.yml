@@ -13,12 +13,15 @@ inputs:
     description: 'Whether to wait for the deployment to finish'
     required: false
     default: 'true'
-  timeout_minutes:
+  timeout-minutes:
     description: 'The maximum time to wait for the deployment to finish (minutes)'
     required: false
     default: '20'
-  image_url:
+  image-url:
     description: 'The image URL to deploy (for image-based services)'
+    required: false
+  commit-id:
+    description: 'The specific commit ID to deploy'
     required: false
 
 outputs:

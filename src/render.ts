@@ -7,12 +7,10 @@ import { BearerCredentialHandler } from '@actions/http-client/lib/auth.js';
 async function makeRenderRequest<T>(
   endpoint: string,
   method: 'get' | 'post' | 'patch' | 'delete',
+  renderApiKey: string,
   data?: unknown,
   { retryAttemptsForGet = 2 }: { retryAttemptsForGet?: number } = {},
 ): Promise<T> {
-  const renderApiKey = core.getInput('render-token', {
-    required: true,
-  });
   const client = new HttpClient('render-deploy-github-action', [
     new BearerCredentialHandler(renderApiKey),
   ]);
@@ -62,7 +60,7 @@ async function makeRenderRequest<T>(
       core.info(`Retrying GET request to ${url}...`);
       // wait one second before retrying
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      return makeRenderRequest<T>(endpoint, method, data, {
+      return makeRenderRequest<T>(endpoint, method, renderApiKey, data, {
         retryAttemptsForGet: retryAttemptsForGet - 1,
       });
     }
@@ -88,8 +86,13 @@ export interface RenderService {
 
 export async function getRenderService(
   serviceId: string,
+  renderApiKey: string,
 ): Promise<RenderService> {
-  return makeRenderRequest<RenderService>(`services/${serviceId}`, 'get');
+  return makeRenderRequest<RenderService>(
+    `services/${serviceId}`,
+    'get',
+    renderApiKey,
+  );
 }
 
 export type RenderDeploymentStatus =
@@ -126,11 +129,13 @@ export interface RenderDeployment {
 
 export async function createRenderDeployment(
   serviceId: string,
+  renderApiKey: string,
   options: { imageUrl?: string; commitId?: string },
 ): Promise<RenderDeployment> {
   return makeRenderRequest<RenderDeployment>(
     `services/${serviceId}/deploys`,
     'post',
+    renderApiKey,
     options,
   );
 }
@@ -138,9 +143,11 @@ export async function createRenderDeployment(
 export async function getRenderDeployment(
   serviceId: string,
   deploymentId: string,
+  renderApiKey: string,
 ): Promise<RenderDeployment> {
   return makeRenderRequest<RenderDeployment>(
     `services/${serviceId}/deploys/${deploymentId}`,
     'get',
+    renderApiKey,
   );
 }

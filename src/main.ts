@@ -9,22 +9,40 @@ import {
   getRenderService,
 } from './render.js';
 
+export interface RunInputs {
+  renderToken: string;
+  serviceId: string;
+  waitForDeploy: boolean;
+  timeoutMinutes: number;
+  imageTag?: string;
+  commitId?: string;
+}
+
+export interface RunOutput {
+  deploymentId: string;
+}
+
 /**
  * The main function for the action.
- * @returns Resolves when the action is complete.
+ * @param inputs - The inputs for the action.
+ * @returns The deployment ID.
+ * @throws An error if the deployment fails.
+ * @throws An error if the service is suspended.
+ * @throws An error if the deployment times out.
  */
-export async function run(): Promise<void> {
-  const renderServiceId = core.getInput('service-id', {
-    required: true,
-  });
-  const waitForDeploy = core.getInput('wait-for-deploy');
-  const timeoutMinutes = core.getInput('timeout_minutes');
-  const imageTag = core.getInput('image_tag');
-  const commitId = core.getInput('commit_id');
+export async function run(inputs: RunInputs): Promise<RunOutput> {
+  const {
+    renderToken,
+    serviceId,
+    waitForDeploy,
+    timeoutMinutes,
+    imageTag,
+    commitId,
+  } = inputs;
 
   // fetch service info
-  core.info(`Fetching service info for ${renderServiceId}...`);
-  const renderService = await getRenderService(renderServiceId);
+  core.info(`Fetching service info for ${serviceId}...`);
+  const renderService = await getRenderService(serviceId, renderToken);
 
   if (renderService.suspended === 'suspended') {
     throw new Error('Render service is suspended');
@@ -32,28 +50,26 @@ export async function run(): Promise<void> {
 
   // create deployment
   core.info(`Creating deployment for ${renderService.name}...`);
-  const newDeployment = await createRenderDeployment(renderServiceId, {
-    imageUrl: imageTag || undefined,
-    commitId: commitId || undefined,
+  const newDeployment = await createRenderDeployment(serviceId, renderToken, {
+    imageUrl: imageTag,
+    commitId,
   });
 
-  if (waitForDeploy === 'true') {
+  if (waitForDeploy) {
     // wait for deployment to finish
     let deployment: RenderDeployment;
-    const timeoutMs = Number.parseInt(timeoutMinutes, 10) * 60 * 1000;
-
-    if (Number.isNaN(timeoutMs) || timeoutMs <= 0) {
-      throw new Error(
-        `Invalid timeout_minutes value: ${timeoutMinutes}. Must be a positive number.`,
-      );
-    }
+    const timeoutMs = timeoutMinutes * 60 * 1000;
 
     core.info(`Waiting for deployment to finish...`);
     const start = Date.now();
     do {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      deployment = await getRenderDeployment(renderServiceId, newDeployment.id);
+      deployment = await getRenderDeployment(
+        serviceId,
+        newDeployment.id,
+        renderToken,
+      );
       if (FAILURE_STATUSES.includes(deployment.status)) {
         throw new Error(`Render deployment failed: ${deployment.status}`);
       }
@@ -74,6 +90,5 @@ export async function run(): Promise<void> {
     );
   }
 
-  // Set deployment ID output
-  core.setOutput('deployment-id', newDeployment.id);
+  return { deploymentId: newDeployment.id };
 }

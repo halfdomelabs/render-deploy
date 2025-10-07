@@ -25723,6 +25723,7 @@ await (0,_deploy_service_js__WEBPACK_IMPORTED_MODULE_1__/* .deployService */ .z)
 })
     .catch((error) => {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error instanceof Error ? error.message : String(error));
+    throw error;
 });
 
 __webpack_async_result__();

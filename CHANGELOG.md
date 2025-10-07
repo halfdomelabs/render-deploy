@@ -1,5 +1,11 @@
 # render-deploy
 
+## 0.2.2
+
+### Patch Changes
+
+- b73574c: Make sure we throw error to error out of render deploy in the event of an error
+
 ## 0.2.1
 
 ### Patch Changes

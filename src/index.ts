@@ -32,4 +32,5 @@ await deployService(inputs)
   })
   .catch((error: unknown) => {
     core.setFailed(error instanceof Error ? error.message : String(error));
+    throw error;
   });

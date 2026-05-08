@@ -33,6 +33,7 @@ jobs:
             echo "publish_script=" >> "$GITHUB_OUTPUT"
           else
             echo "Release $TAG missing; will publish."
+            git tag "$TAG"
             echo 'publish_script=echo "New tag:"' >> "$GITHUB_OUTPUT"
           fi
 

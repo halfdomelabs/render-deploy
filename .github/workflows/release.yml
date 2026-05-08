@@ -21,9 +21,24 @@ jobs:
       - name: Setup PNPM
         uses: ./.github/actions/setup-pnpm
 
+      - name: Check if release tag exists
+        id: tag_check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; will skip publish."
+            echo "publish_script=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release $TAG missing; will publish."
+            echo 'publish_script=echo "New tag:"' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create Release Pull Request or Create GitHub Release
         id: changesets
         uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1.7.0
         with:
           title: 'chore: Version Packages'
-          publish: true # no-op to publish
+          publish: ${{ steps.tag_check.outputs.publish_script }}

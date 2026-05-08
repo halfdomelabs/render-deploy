@@ -2,7 +2,7 @@ import type { HttpClientResponse } from '@actions/http-client';
 
 import * as core from '@actions/core';
 import { HttpClient } from '@actions/http-client';
-import { BearerCredentialHandler } from '@actions/http-client/lib/auth.js';
+import { BearerCredentialHandler } from '@actions/http-client/lib/auth';
 
 async function makeRenderRequest<T>(
   endpoint: string,

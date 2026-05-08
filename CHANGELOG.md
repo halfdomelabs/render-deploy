@@ -1,5 +1,11 @@
 # render-deploy
 
+## 0.2.3
+
+### Patch Changes
+
+- 7c7863a: Upgrade dependencies and pin github actions
+
 ## 0.2.2
 
 ### Patch Changes

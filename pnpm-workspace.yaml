@@ -14,5 +14,6 @@ savePrefix: ''
 
 saveWorkspaceProtocol: rolling
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  unrs-resolver: false
+  esbuild: true
